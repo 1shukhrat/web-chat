@@ -5,6 +5,8 @@ const showChat = document.querySelector("#showChat");
 const backBtn = document.querySelector(".header__back");
 myVideo.muted = true;
 
+const ROOM_ID = new URL(window.location.href).searchParams.get('room');
+
 backBtn.addEventListener("click", () => {
   document.querySelector(".main__left").style.display = "flex";
   document.querySelector(".main__left").style.flex = "1";
@@ -21,17 +23,18 @@ showChat.addEventListener("click", () => {
 
 const user = prompt("Enter your name");
 
-var peer = new Peer({
-  host: 'localhost',
-  port: 3030,
-  path: '/peerjs',
+// var peer = new Peer({
+//   host: 'localhost',
+//   port: 3030,
+//   path: '/peerjs',
 
-  debug: 3
-});
+//   debug: 3
+// });
+
+var peer = new Peer();
 
 let myVideoStream;
-navigator.mediaDevices
-  .getUserMedia({
+navigator.mediaDevices.getUserMedia({
     audio: true,
     video: true,
   })
