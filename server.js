@@ -1,4 +1,5 @@
 const express = require("express");
+require('dotenv').config();
 const app = express();
 const server = require("http").Server(app);
 const { v4: uuidv4 } = require("uuid");
@@ -7,6 +8,13 @@ const io = require("socket.io")(server, {
     origin: '*'
   }
 });
+const db = require("./db");
+db.sequelize.authenticate().then(() => {
+   const models = require("./models/models");
+});
+
+
+
 
 app.use(express.static("public"));
 
@@ -36,3 +44,9 @@ io.on("connection", (socket) => {
 });
 
 server.listen(process.env.PORT || 3030);
+
+process.on("SIGINT", () => {
+  db.Mongoose.disconnect();
+  db.sequelize.close();
+  process.exit();
+})
