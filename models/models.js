@@ -95,6 +95,10 @@ Room.hasMany(Participant, {
     onDelete : 'cascade',
 });
 
+User.hasMany(Participant, {
+    onDelete : 'cascade',
+})
+
 User.hasMany(Invite, {
     onDelete : 'cascade',
 });
@@ -117,17 +121,30 @@ Constraint.belongsToMany(Participant, {
     onDelete: 'cascade'
 });
 
+const RoomConstraint = db.sequelize.define('RoomConstraint', {});
+
+Room.belongsToMany(Constraint, {
+    through: RoomConstraint,
+    onDelete: 'cascade'
+});
+
+Constraint.belongsToMany(Room, {
+    through: RoomConstraint,
+    onDelete: 'cascade'
+});
+
 const ChatSchema = new db.Mongoose.Schema({
     roomId: { type: String, required: true },
     messages: [{
         content: { type: String, required: true },
         date: { type: Date, default: Date.now },
-        sender: { type: String, required: true },
-        files: [String]
+        sender: { type: String, required: true }
     }]
 }, {versionKey: false});
 
-db.sequelize.sync({force : true});
+db.sequelize.sync({
+    force: false
+});
 
 module.exports = {
    User,

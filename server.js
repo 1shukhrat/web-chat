@@ -9,9 +9,12 @@ const io = require("socket.io")(server, {
   }
 });
 const db = require("./db");
+
 db.sequelize.authenticate().then(() => {
    const models = require("./models/models");
 });
+
+
 
 
 

@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const env = process.env;
 
-const mongoConnectionUrl = `mongodb://${env.MDB_USERNAME}:${env.MDB_PASSWORD}@${env.MDB_HOST}:${env.MDB_PORT}/${env.MDB_NAME}`;
+const mongoConnectionUrl = `mongodb://${env.MDB_HOST}:${env.MDB_PORT}/${env.MDB_NAME}`;
 
 Mongoose.connect(mongoConnectionUrl);
 
