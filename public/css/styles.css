@@ -1,0 +1,168 @@
+/* Reset some default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f3f3f3;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Login Container */
+.login-container, .admin-container, .main-container {
+    background-color: #fff;
+    padding: 20px 40px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.login-container h1, .admin-container h1, .main-container h1 {
+    margin-bottom: 20px;
+}
+
+.login-container form, .admin-container form, .main-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+input[type="text"], input[type="password"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+/* Admin Container */
+.admin-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.admin-container table, .admin-container th, .admin-container td {
+    border: 1px solid #ddd;
+}
+
+.admin-container th, .admin-container td {
+    padding: 12px;
+    text-align: left;
+}
+
+.admin-container th {
+    background-color: #f2f2f2;
+}
+
+.admin-actions {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 400px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Main Container */
+.main-container button {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.main-container h1 {
+    margin-bottom: 30px;
+}
+
+/* Create Room Modal */
+#room-name, #audio-access, #video-access {
+    display: block;
+    margin: 10px auto;
+    font-size: 16px;
+}
+
+#room-name {
+    padding: 10px;
+    width: calc(100% - 20px);
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+label {
+    display: inline-block;
+    margin-top: 10px;
+}
+/* Добавленные стили для кнопок в блочном стиле */
+/* Добавляем стили для обертки чекбоксов */
+.checkboxes-container {
+    display: block;
+    flex-direction: column;
+    margin-top: 10px; /* добавляем небольшой отступ сверху */
+}
+
+/* Стили для каждого чекбокса */
+.checkboxes-container label {
+    margin-bottom: 5px; /* добавляем отступ между чекбоксами */
+}
+
+/* Стили для кнопки */
+#createRoomForm button {
+    margin-top: 10px; /* добавляем отступ над кнопкой */
+}
+

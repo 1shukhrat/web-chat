@@ -1,11 +1,16 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('node:crypto');
 
-const generateJwt = (id, username, role) => {
+const generateJwtToken = (id, username, role) => {
     return jwt.sign(
-        {id, email, role},
+        {id, username, role},
         process.env.SECRET_KEY,
         {expiresIn: '24h'}
     )
 }
 
-module.exports = {generateJwt};
+const generateAccessCode = (length) => {
+    return crypto.randomBytes(length).toString('hex');
+};
+
+module.exports = {generateJwtToken, generateAccessCode};

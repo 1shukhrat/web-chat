@@ -89,48 +89,68 @@ const Invite = db.sequelize.define('Invite', {
     }
 });
 
-User.belongsTo(Role);
+User.belongsTo(Role, {foreignKey: 'role'});
 
 Room.hasMany(Participant, {
+    foreignKey: 'room_id',
     onDelete : 'cascade',
 });
 
 User.hasMany(Participant, {
+    foreignKey: 'user_id',
     onDelete : 'cascade',
-})
+});
+Participant.belongsTo(User, {foreignKey: 'user_id'});
 
+Invite.belongsTo(User, {foreignKey: 'user_id'});
 User.hasMany(Invite, {
+    foreignKey: 'user_id',
     onDelete : 'cascade',
 });
 
 Room.hasMany(Invite, {
+    foreignKey: 'room_id',
     onDelete : 'cascade',
 });
+Invite.belongsTo(Room, {foreignKey: 'room_id'});
 
-User.hasMany(Room);
+Room.belongsTo(User, {foreignKey: 'user_id'});
+
+User.hasMany(Room, {
+    foreignKey: 'user_id', 
+    onDelete : 'cascade'
+});
 
 const ParticipantConstraint = db.sequelize.define('ParticipantConstraint', {});
 
 Participant.belongsToMany(Constraint, {
     through: ParticipantConstraint,
-    onDelete: 'cascade'
+    onDelete: 'cascade',
+    foreignKey: 'participant_id',
+    otherKey: 'constraint'
 });
 
 Constraint.belongsToMany(Participant, {
     through: ParticipantConstraint,
-    onDelete: 'cascade'
+    onDelete: 'cascade',
+    foreignKey: 'constraint',
+    otherKey: 'participant_id'
 });
 
 const RoomConstraint = db.sequelize.define('RoomConstraint', {});
 
 Room.belongsToMany(Constraint, {
     through: RoomConstraint,
-    onDelete: 'cascade'
+    onDelete: 'cascade',
+    foreignKey: 'room_id',
+    otherKey: 'constraint'
 });
 
 Constraint.belongsToMany(Room, {
     through: RoomConstraint,
-    onDelete: 'cascade'
+    onDelete: 'cascade',
+    foreignKey: 'constraint',
+    otherKey: 'room_id'
 });
 
 const ChatSchema = new db.Mongoose.Schema({

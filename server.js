@@ -1,6 +1,7 @@
-const express = require("express");
 require('dotenv').config();
+const express = require("express");
 const app = express();
+const db = require("./db");
 const server = require("http").Server(app);
 const { v4: uuidv4 } = require("uuid");
 const io = require("socket.io")(server, {
@@ -8,18 +9,21 @@ const io = require("socket.io")(server, {
     origin: '*'
   }
 });
-const db = require("./db");
-
 db.sequelize.authenticate().then(() => {
-   const models = require("./models/models");
+  const models = require("./models/models");
 });
+const router = require("./routes/mainRouter");
 
 
-
-
-
-
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use('/api', router);
+app.use('/admin', express.static('public/admin.html'))
+app.use('/main', express.static('public/main.html'))
+app.use('/login', express.static('public/login.html'))
 app.use(express.static("public"));
+
+
 
 app.get("/", (req, res) => {
   res.redirect(`/new?room=${uuidv4()}`);
@@ -46,7 +50,7 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(process.env.PORT || 3030);
+server.listen(process.env.SERVER_PORT || 3030);
 
 process.on("SIGINT", () => {
   db.Mongoose.disconnect();

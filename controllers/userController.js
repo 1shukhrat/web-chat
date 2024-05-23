@@ -1,57 +1,67 @@
-const generateToken = require('../utils');
+const {generateJwtToken} = require('../utils');
 const bcrypt = require('bcrypt');
-const {User} = require('../models');
+const {User, Role} = require('../models/models');
 
 class UserController {
 
     async createUser(req, res) {
-        const newUser = await User.create({
-            username: req.body.username,
-            password: bcrypt.hash(req.body.password,5),
-            firstNmame: req.body.firstNmame,
-            lastNmame: req.body.lastNmame,
-            role : req.body.role
-        });
-        res.status(201).json({
-            message : 'User created successfully',
-            user : {
-                id : newUser.id,
-                username : newUser.username,
-                firstNmame : newUser.firstNmame,
-                lastNmame : newUser.lastNmame,
-                role : newUser.role
-            },
-            token: generateToken(newUser.id, newUser.username, newUser.role)
-        });
-    }
+        const role = Role.findByPk(req.body.role);
+        if (role) {
+            const newUser = await User.create({
+                username: req.body.username,
+                password: await bcrypt.hash(req.body.password,5),
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                role : req.body.role
+            });
+            res.status(201).json({
+                message : 'Пользователь успешно создан',
+                user : {
+                    id : newUser.id,
+                    username : newUser.username,
+                    firstName : newUser.firstName,
+                    lastName : newUser.lastName,
+                    role : newUser.role
+                },
+                token: generateJwtToken(newUser.id, newUser.username, newUser.role)
+            });
+        } else {
+            return res.status(400).json({message: 'Некорректная роль'});
+        }        
+    };
 
     async deleteUser(req, res) {
         const user = await User.findByPk(req.params.id);
         if (!user) {
-            return res.status(404).json({message: 'User not found'});
+            return res.status(404).json({message: 'Пользователь не найден'});
         }
         await user.destroy();
-        return res.status(200).json({message: 'User deleted successfully'});
+        return res.status(200).json({message: 'Пользователь успешно удален'});
     }
 
     async updateRole(req, res) {
         const user = await User.findByPk(req.params.id);
         if (!user) {
-            return res.status(404).json({message: 'User not found'});
+            return res.status(404).json({message: 'Пользователь не найден'});
         }
-        await user.update({role: req.body.role});
-        return res.status(200).json({message: 'User updated successfully'});
+        const role = await Role.findByPk(req.body.role);
+        if (role) {
+            await user.update({role: req.body.role});
+            return res.status(200).json({message: 'Роль пользователя успешно обновлена'});
+        } else {
+            return res.status(400).json({message: 'Некорректная роль'});
+        }
     }
 
     async getAllUsers(req, res) {
-        const users = await User.findAll();
+        const users = await User.findAll({attributes : {exclude: ['password']}});
         return res.status(200).json(users);
     }
 
     async getUserById(req, res) {
-        const user = await User.findByPk(req.params.id);
+        const user = await User.findByPk(req.params.id, {attributes : {exclude: ['password']}});
         if (!user) {
-            return res.status(404).json({message: 'User not found'});
+            return res.status(404).json({message: 'Пользователь не найден'});
         }
         return res.status(200).json(user);
     }
@@ -59,11 +69,11 @@ class UserController {
     async login(req, res) {
         const user = await User.findOne({where: {username: req.body.username}});
         if (!user) {
-            return res.status(404).json({message: 'User not found'});
+            return res.status(404).json({message: 'Пользователь не найден'});
         }
-        if (bcrypt.compare(req.body.password, user.password)) {
+        if (await bcrypt.compare(req.body.password, user.password)) {
             return res.status(200).json({
-                message: 'Login successful',
+                message: 'Вы успешно вошли',
                 user: {
                     id: user.id,
                     username: user.username,
@@ -71,10 +81,12 @@ class UserController {
                     lastNmame: user.lastNmame,
                     role: user.role
                 },
-                token: generateToken(user.id, user.username, user.role)
+                token: generateJwtToken(user.id, user.username, user.role)
             });
         } else {
-            return res.status(401).json({message: 'Login failed'});
+            return res.status(401).json({message: 'Неверный пароль'});
         }
     }
 }
+
+module.exports = new UserController();

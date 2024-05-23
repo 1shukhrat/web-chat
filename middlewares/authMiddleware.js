@@ -1,13 +1,13 @@
 const jwt = require("jsonwebtoken");
 
-module.exports = (role) => {
+module.exports = (...roles) => {
     return (req, res, next) => {
         const authHeader =req.headers.authorization;
         if (authHeader) {
             try {
                 const token = authHeader.split(" ")[1];
-                const decoded = jwt.verify(token, process.env.JWT_SECRET);
-                if (decoded.role === role) {
+                const decoded = jwt.verify(token, process.env.SECRET_KEY);
+                if (roles.find(role => role == decoded.role)) {
                     req.user = decoded;
                     next();
                 } else {

@@ -1,73 +1,153 @@
-const {User, Participant, Room, Invite, Constraint} = require('../models/models');
+const {Participant, Room, Invite, Constraint, User} = require('../models/models');
+const {generateAccessCode} = require('../utils');
+const {sequelize} = require('../db');
 
 class ParticipantController {
-
-    async join(req, res) {
-        const room = await Room.findByPk(req.body.roomId, {
-            include: [
-                {
-                    model: Constraint,
-                    as: 'constraints',
-                    attributes: ['name'],
-                    through: {
-                        attributes: []
-                    }
-                }
-            ]
+    async changeConstraints(req, res) {
+        const room = await Room.findOne({
+            where : {
+                id : req.params.roomId,
+                user_id: req.user.id
+            }
         });
-        if (!room) {
-            return res.status(404).send({message: 'Room not found'});
+        const participant = await Participant.findOne({
+            where : {
+                id: req.params.participantId,
+                room_id: req.params.roomId,
+            }
+        });
+        if (!participant || !room) {
+            return res.status(404).send('Комната или участник не найдены');
         } else {
-            const invite = await Invite.findOne({
+            const constraints = await Constraint.findAll({
                 where: {
-                    roomId: room.id,
-                    userId: req.user.id
+                    name: req.body.constraints
                 }
             });
-            if (invite) {
-
-                const participant = await Participant.create({
-                    userId: req.user.id,
-                    roomId: room.id
-                });
-
-                participant.setConstraints(room.constraints);
-
-                await participant.save();
-
-                return res.status(200).send({participant});
+            if (constraints.length === 0) {
+                return res.status(404).send('Некорректные ограничения');
             } else {
-                return res.status(404).send({message: 'Invite not found'});
+                await participant.setConstraints(constraints);
+                return res.status(200).send({
+                    message: 'Данные участника успешно изменены',
+                    participant : await Participant.findByPk(participant.id, {
+                        include: [
+                            {
+                                model: Constraint,
+                                attributes: ['name'],
+                                through: {
+                                    attributes: []
+                                }
+                            }
+                        ]
+                    })
+                }); 
+            }
+        }  
+    }
+
+    async invite(req, res) {
+        const room = await Room.findOne({
+            where : {
+                id : req.params.roomId,
+                user_id: req.user.id
+            }
+        });
+        const user = await User.findByPk(req.body.userId);
+        if (!room || !user) {
+            return res.status(404).send({
+                message : 'Комната или пользователь не найдены'
+            });
+        } else {
+            const invite = await Invite.create({
+                room_id: room.id,
+                user_id: user.id,
+                code: generateAccessCode(5)
+            });
+            return res.status(200).send({
+                message: 'Приглашение успешно отправлено',
+                invite : await Invite.findByPk(invite.id, {include: [
+                       {
+                           model: User,
+                           attributes: ['username']
+                       },
+                       {
+                           model: Room,
+                           attributes: ['id']
+                       }
+                   ]})   
+            });
+        }; 
+    }
+
+    async deleteParticipant(req, res) {
+        const room = await Room.findOne({
+            where : {
+                id : req.params.roomId,
+                user_id: req.user.id
+            }
+        });
+        const participant = await Participant.findOne({
+            where : {
+                id: req.params.participantId,
+                room_id: req.params.roomId,
+            }
+        });
+        if (!participant ||!room) {
+            return res.status(404).send('Комната или участник не найдены');
+        } else {
+            const t = await sequelize.transaction();
+            try {
+                await Participant.destroy({ where : {id: participant.id}});
+                await Invite.destroy({ where : {user_id: participant.user_id}});
+                t.commit();
+                return res.status(200).send({message: 'Участник удален'});
+            } catch (e) {
+                console.log(e);
+                t.rollback();
+                return res.status(500).send('Ошибка при удалении участника');
             }
         }
     }
 
-    async leave(req, res) {
+    async getParticipants(req, res) {
+        const room = await Room.findOne({where : {
+               id : req.params.roomId,
+        }});
         const participant = await Participant.findOne({
-           where: {
-               userId: req.user.id,
-               roomId: req.body.roomId
-           }
-       });
-       if (participant) {
-           await participant.destroy();
-           return res.status(200).send({message: 'Participant left'});
-       } else {
-           return res.status(404).send({message: 'Participant not found'});
-       }
-    }
-
-    async changeConstraints(req, res) {
-        const room = await Room.findByPk(req.body.roomId);
-        const participant = Participant.findByPk(req.body.participantId);
-        const constraints = await Constraint.findAll({
-            where: {
-                name: req.body.constraints
-            }
-        });
+            user_id : req.user.id,
+            room_id: req.params.roomId,
+        })
+        if (!room || !participant) {   
+            return res.status(404).json({
+                message: 'Комната или участник не найдены'
+            });
+        } else {
+            return res.status(200).send({
+                participants: await Participant.findAll({
+                    where: {
+                        room_id: room.id
+                    },
+                    include: [
+                        {
+                            model: User,
+                            attributes: ['id', 'username', 'firstName', 'lastName']
+                        },
+                        {
+                            model: Constraint,
+                            attributes: ['name'],
+                            through: {
+                                attributes: []
+                            }
+                        }
+                    ]
+                })
+            });
         
-        participant.setConstraints(constraints);
-        await participant.save();
-        return res.status(200).send(participant);
+        }
+
+
     }
 }
+
+module.exports = new ParticipantController();
